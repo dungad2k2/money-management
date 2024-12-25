@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css"
+          integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
+    <title>User Management</title>
+</head>
+
+<body>
+    <div style="text-align: center;"><h1>User Management</h1></div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">Add a User</div>
+            <div class="card-body">
+                <form id="userForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" class="form-control" id="username" placeholder="Enter username">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    &nbsp;
+    &nbsp;
+    <div class="container">
+        <div class="card">
+            <div class="card-header">Users</div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <thead>
+                    <tr>
+                        <th scope="col">Username</th>
+                        <th scope="col">Money Spend</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchUsers();
+
+            document.getElementById('userForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const username = document.getElementById('username').value;
+                createUser(username);
+            });
+        });
+
+        function fetchUsers() {
+            fetch('/users')
+                .then(response => response.json())
+                .then(data => {
+                    const userTableBody = document.getElementById('userTableBody');
+                    userTableBody.innerHTML = '';
+                    data.data.forEach(user => {
+                        userTableBody.innerHTML += `
+                            <tr>
+                                <td>${user.username}</td>
+                                <td>${user.moneyspend}</td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="updateUser(${user.id}, '${user.username}')">Update</button>
+                                    <button class="btn btn-danger" onclick="deleteUser(${user.id})">Delete</button>
+                                    <button class="btn btn-secondary" onclick="location.href='/users/${user.id}/expenses'">Create Expense</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        function createUser(username) {
+            fetch('/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username })
+            })
+            .then(response => response.json())
+            .then(data => {
+                fetchUsers();
+                document.getElementById('username').value = '';
+            });
+        }
+
+        function updateUser(id, currentUsername) {
+            const newUsername = prompt('Enter new username:', currentUsername);
+            if (newUsername) {
+                fetch(`/users/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: newUsername })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    fetchUsers();
+                });
+            }
+        }
+
+        function deleteUser(id) {
+            fetch(`/users/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                fetchUsers();
+            });
+        }
+    </script>
+</body>
+</html>

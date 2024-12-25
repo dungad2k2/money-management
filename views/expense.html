@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css"
+          integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
+    <title>User Expenses</title>
+</head>
+
+<body>
+    <div style="text-align: center;"><h1>User Expenses</h1></div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">Add an Expense</div>
+            <div class="card-body">
+                <form id="expenseForm">
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <input type="number" class="form-control" id="amount" placeholder="Enter amount">
+                    </div>
+                    <div class="form-group">
+                        <label for="reason">Reason</label>
+                        <input type="text" class="form-control" id="reason" placeholder="Enter reason">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    &nbsp;
+    &nbsp;
+    <div class="container">
+        <div class="card">
+            <div class="card-header">Expenses</div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <thead>
+                    <tr>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Reason</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="expenseTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const userId = new URLSearchParams(window.location.search).get('user_id');
+            fetchExpenses(userId);
+
+            document.getElementById('expenseForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const amount = document.getElementById('amount').value;
+                const reason = document.getElementById('reason').value;
+                createExpense(userId, amount, reason);
+            });
+        });
+
+        function fetchExpenses(userId) {
+            fetch(`/users/${userId}/expenses/all`)
+                .then(response => response.json())
+                .then(data => {
+                    const expenseTableBody = document.getElementById('expenseTableBody');
+                    expenseTableBody.innerHTML = '';
+                    data.data.forEach(expense => {
+                        expenseTableBody.innerHTML += `
+                            <tr>
+                                <td>${expense.amount}</td>
+                                <td>${expense.reason}</td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="updateExpense(${expense.id}, ${expense.amount}, '${expense.reason}')">Update</button>
+                                    <button class="btn btn-danger" onclick="deleteExpense(${expense.id})">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        function createExpense(userId, amount, reason) {
+            fetch(`/users/${userId}/expenses`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ amount, reason })
+            })
+            .then(response => response.json())
+            .then(data => {
+                fetchExpenses(userId);
+                document.getElementById('amount').value = '';
+                document.getElementById('reason').value = '';
+            });
+        }
+
+        function updateExpense(id, currentAmount, currentReason) {
+            const newAmount = prompt('Enter new amount:', currentAmount);
+            const newReason = prompt('Enter new reason:', currentReason);
+            if (newAmount && newReason) {
+                fetch(`/expenses/${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount: newAmount, reason: newReason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const userId = new URLSearchParams(window.location.search).get('user_id');
+                    fetchExpenses(userId);
+                });
+            }
+        }
+
+        function deleteExpense(id) {
+            fetch(`/expenses/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const userId = new URLSearchParams(window.location.search).get('user_id');
+                fetchExpenses(userId);
+            });
+        }
+    </script>
+</body>
+</html>
