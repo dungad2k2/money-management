@@ -7,5 +7,4 @@ type User struct {
 	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
 	Moneyspend float64 `json:"moneyspend"`
-	Expenses []Expense `gorm:"foreignKey:UserID" json:"expenses"`
 }

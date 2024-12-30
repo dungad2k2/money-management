@@ -62,7 +62,7 @@
         });
 
         function fetchExpenses(userId) {
-            fetch(`/users/${userId}/expenses/all`)
+            fetch(`/users/${userId}/expenses`)
                 .then(response => response.json())
                 .then(data => {
                     const expenseTableBody = document.getElementById('expenseTableBody');
@@ -103,7 +103,7 @@
             const newReason = prompt('Enter new reason:', currentReason);
             if (newAmount && newReason) {
                 fetch(`/expenses/${id}`, {
-                    method: 'PATCH',
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },

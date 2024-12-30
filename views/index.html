@@ -1,57 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css"
-          integrity="sha384-SI27wrMjH3ZZ89r4o+fGIJtnzkAnFs3E4qz9DIYioCQ5l9Rd/7UAa8DHcaL8jkWt" crossorigin="anonymous">
-    <title>User Management</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Management</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
-
 <body>
-    <div style="text-align: center;"><h1>User Management</h1></div>
-
     <div class="container">
-        <div class="card">
-            <div class="card-header">Add a User</div>
+        <h1>Money Management</h1>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Create User</h2>
+            </div>
             <div class="card-body">
                 <form id="userForm">
                     <div class="form-group">
                         <label for="username">Username</label>
-                        <input type="text" class="form-control" id="username" placeholder="Enter username">
+                        <input type="text" class="form-control" id="username" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
                 </form>
             </div>
         </div>
-    </div>
-    &nbsp;
-    &nbsp;
-    <div class="container">
-        <div class="card">
-            <div class="card-header">Users</div>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Users</h2>
+            </div>
             <div class="card-body">
-                <table class="table table-borderless">
+                <table class="table">
                     <thead>
-                    <tr>
-                        <th scope="col">Username</th>
-                        <th scope="col">Money Spend</th>
-                        <th scope="col">Actions</th>
-                    </tr>
+                        <tr>
+                            <th>Username</th>
+                            <th>Money Spent</th>
+                            <th>Actions</th>
+                        </tr>
                     </thead>
                     <tbody id="userTableBody">
+                        <!-- Users will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Summary</h2>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Money Spent</th>
+                            <th>Difference from Average</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summaryTableBody">
+                        <!-- Summary will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Create Expense</h2>
+            </div>
+            <div class="card-body">
+                <form id="expenseForm">
+                    <div class="form-group">
+                        <label for="expenseUsername">Username</label>
+                        <input type="text" class="form-control" id="expenseUsername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <input type="number" class="form-control" id="amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="reason">Reason</label>
+                        <input type="text" class="form-control" id="reason" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Expense</button>
+                </form>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Expenses</h2>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody">
+                        <!-- Expenses will be populated here -->
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             fetchUsers();
+            fetchExpenses();
 
             document.getElementById('userForm').addEventListener('submit', function(event) {
                 event.preventDefault();
                 const username = document.getElementById('username').value;
                 createUser(username);
+            });
+
+            document.getElementById('expenseForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                const username = document.getElementById('expenseUsername').value;
+                const amount = parseFloat(document.getElementById('amount').value);
+                const reason = document.getElementById('reason').value;
+                createExpense(username, amount, reason);
             });
         });
 
@@ -69,7 +138,29 @@
                                 <td>
                                     <button class="btn btn-primary" onclick="updateUser(${user.id}, '${user.username}')">Update</button>
                                     <button class="btn btn-danger" onclick="deleteUser(${user.id})">Delete</button>
-                                    <button class="btn btn-secondary" onclick="location.href='/users/${user.id}/expenses'">Create Expense</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    updateSummary(data.data);
+                });
+        }
+
+        function fetchExpenses() {
+            fetch('/expenses')
+                .then(response => response.json())
+                .then(data => {
+                    const expenseTableBody = document.getElementById('expenseTableBody');
+                    expenseTableBody.innerHTML = '';
+                    data.data.forEach(expense => {
+                        expenseTableBody.innerHTML += `
+                            <tr>
+                                <td>${expense.username}</td>
+                                <td>${expense.amount}</td>
+                                <td>${expense.reason}</td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="updateExpense(${expense.id}, '${expense.username}', ${expense.amount}, '${expense.reason}')">Update</button>
+                                    <button class="btn btn-danger" onclick="deleteExpense(${expense.id})">Delete</button>
                                 </td>
                             </tr>
                         `;
@@ -88,15 +179,33 @@
             .then(response => response.json())
             .then(data => {
                 fetchUsers();
-                document.getElementById('username').value = '';
             });
         }
 
-        function updateUser(id, currentUsername) {
-            const newUsername = prompt('Enter new username:', currentUsername);
+        function createExpense(username, amount, reason) {
+            fetch('/expenses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, amount, reason })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    fetchExpenses();
+                    fetchUsers();
+                }
+            });
+        }
+
+        function updateUser(id, username) {
+            const newUsername = prompt("Enter new username:", username);
             if (newUsername) {
                 fetch(`/users/${id}`, {
-                    method: 'PATCH',
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -110,12 +219,64 @@
         }
 
         function deleteUser(id) {
-            fetch(`/users/${id}`, {
-                method: 'DELETE'
-            })
-            .then(response => response.json())
-            .then(data => {
-                fetchUsers();
+            if (confirm("Are you sure you want to delete this user?")) {
+                fetch(`/users/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    fetchUsers();
+                });
+            }
+        }
+
+        function updateExpense(id, username, amount, reason) {
+            const newAmount = prompt("Enter new amount:", amount);
+            const newReason = prompt("Enter new reason:", reason);
+            if (newAmount && newReason) {
+                fetch(`/expenses/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ amount: newAmount, reason: newReason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    fetchExpenses();
+                    fetchUsers();
+                });
+            }
+        }
+
+        function deleteExpense(id) {
+            if (confirm("Are you sure you want to delete this expense?")) {
+                fetch(`/expenses/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    fetchExpenses();
+                    fetchUsers();
+                });
+            }
+        }
+
+        function updateSummary(users) {
+            const totalMoneySpent = users.reduce((sum, user) => sum + user.moneyspend, 0);
+            const averageMoneySpent = totalMoneySpent / users.length;
+
+            const summaryTableBody = document.getElementById('summaryTableBody');
+            summaryTableBody.innerHTML = '';
+            users.forEach(user => {
+                const difference = user.moneyspend - averageMoneySpent;
+                summaryTableBody.innerHTML += `
+                    <tr>
+                        <td>${user.username}</td>
+                        <td>${user.moneyspend}</td>
+                        <td>${difference.toFixed(2)}</td>
+                    </tr>
+                `;
             });
         }
     </script>

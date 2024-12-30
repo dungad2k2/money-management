@@ -18,21 +18,13 @@ func main() {
     models.ConnectDB() 
     router.POST("/users", controllers.CreateUser)
     router.GET("/users", controllers.FindUsers)
-    router.GET("/users/:id", controllers.FindUser)
-    router.PATCH("/users/:id", controllers.UpdateUser)
+    router.PUT("/users/:id", controllers.UpdateUser)
     router.DELETE("/users/:id", controllers.DeleteUser)
-    router.LoadHTMLGlob("views/*")
-    router.GET("/users/:id/expenses", func(c *gin.Context) {
-        c.HTML(200, "expense.html", gin.H{
-            "title": "Expenses Page",
-            "user_id": c.Param("user_id"),
-        })
-    })
-
-    router.POST("/users/:id/expenses", controllers.CreateExpense)
-    router.GET("/users/:id/expenses/all", controllers.FindExpenses)
+    router.POST("/expenses", controllers.CreateExpense)
+    router.GET("/expenses", controllers.FindExpenses)
     router.GET("/expenses/:id", controllers.FindExpense)
-    router.PATCH("/expenses/:id", controllers.UpdateExpense)
+    router.PUT("/expenses/:id", controllers.UpdateExpense)
     router.DELETE("/expenses/:id", controllers.DeleteExpense)
+    
     router.Run(":8080")
 }

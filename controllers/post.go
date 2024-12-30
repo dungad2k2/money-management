@@ -40,19 +40,17 @@ func FindUser(c *gin.Context){
 }
 
 func UpdateUser(c *gin.Context){
-	var user models.User
-	if err := models.DB.Where("id = ?", c.Param("id")).First(&user).Error; err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found!"})
-		return
-	}
 	var input UpdatePostInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	updatedPost := models.User{Username: input.UserName}
-	models.DB.Model(&user).Updates(&updatedPost)
-	
+	var user models.User
+	if err := models.DB.Where("id = ?", c.Param("id")).First(&user).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User not found!"})
+		return
+	}
+	models.DB.Model(&user).Updates(models.User{Username: input.UserName})
 	c.JSON(http.StatusOK, gin.H{"data": user})
 }
 func DeleteUser(c *gin.Context){
